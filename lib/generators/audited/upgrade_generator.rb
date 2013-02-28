@@ -32,6 +32,10 @@ module Audited
         Audited::Adapters::ActiveRecord::Audit.reset_column_information
         columns = Audited::Adapters::ActiveRecord::Audit.columns.map(&:name)
 
+        unless columns.include? ( 'transaction_id' )
+          yield :add_transaction_id_to_audits
+        end
+
         unless columns.include?( 'comment' )
           yield :add_comment_to_audits
         end
