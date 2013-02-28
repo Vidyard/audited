@@ -89,6 +89,17 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
     Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id).last.version.should be(3)
   end
 
+  describe "transaction ids" do
+    it "should not assign a transaction id if there is none" do
+      user = Models::ActiveRecord::User.create! :name => 'Transaction Tester'
+      user.audits.first.transaction_id.should be_nil
+      user.update_attribute :name, "New Name"
+      user.audits.last.transaction_id.should be_nil
+      user.destroy
+      Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id, :action => 'destroy').first.transaction_id.should be_nil
+    end
+  end
+
   describe "reconstruct_attributes" do
 
     it "should work with the old way of storing just the new value" do
@@ -192,5 +203,4 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
       Audited.audit_class.accessible_attributes.should include(:action, :audited_changes, :comment, :associated)
     end
   end
-
 end

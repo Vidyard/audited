@@ -15,7 +15,12 @@ module Audited
 
     def before_create(audit)
       audit.user ||= current_user
+      audit.transaction_id ||= transaction_id
       audit.remote_address = controller.try(:request).try(:ip)
+    end
+
+    def transaction_id
+      controller.send(Audited.transaction_id_method) if controller.respond_to?(Audited.transaction_id_method, true)
     end
 
     def current_user

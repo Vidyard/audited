@@ -15,6 +15,7 @@ class AuditsController < ActionController::Base
 
   attr_accessor :current_user
   attr_accessor :custom_user
+  attr_accessor :transaction_id
 end
 
 describe AuditsController, :adapter => :active_record do
@@ -22,11 +23,19 @@ describe AuditsController, :adapter => :active_record do
 
   before(:each) do
     Audited.current_user_method = :current_user
+    Audited.transaction_id_method = :transaction_id
   end
 
   let( :user ) { create_user }
 
   describe "POST audit" do
+
+    it "should audit transation id" do
+      controller.send(:transaction_id=, '123abc')
+
+      post :audit
+      assigns(:company).audits.last.transaction_id.should eq('123abc')
+    end
 
     it "should audit user" do
       controller.send(:current_user=, user)
