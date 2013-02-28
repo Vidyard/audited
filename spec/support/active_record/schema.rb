@@ -52,5 +52,5 @@ ActiveRecord::Schema.define do
   add_index :audits, [:associated_id, :associated_type], :name => 'associated_index'
   add_index :audits, [:user_id, :user_type], :name => 'user_index'
   add_index :audits, :created_at
-  add_index :audits, :transaction_id, :name => 'transaction_id'
+  add_index :audits, :transaction_id, :name => 'transaction_id_index'
 end
