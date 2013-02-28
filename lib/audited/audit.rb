@@ -16,7 +16,7 @@ module Audited
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
 
-        attr_accessible :action, :audited_changes, :comment, :associated
+        attr_accessible :action, :audited_changes, :comment, :associated, :transaction_id
       end
 
       # Returns the list of classes that are being audited
