@@ -5,7 +5,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration
   end
 
   def self.down
-    remove_index :audits, :transaction_id, :name => 'transaction_id'
+    remove_index :audits, :transaction_id
     remove_column :audits, :transaction_id
   end
 end
