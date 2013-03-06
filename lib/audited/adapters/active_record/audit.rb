@@ -15,19 +15,11 @@ module Audited
       #
       class Audit < ::ActiveRecord::Base
         include Audited::Audit
-
-
         serialize :audited_changes
 
         scope :creates,       :conditions => {:action => 'create'}
         scope :updates,       :conditions => {:action => 'update'}
         scope :destroys,      :conditions => {:action => 'destroy'}
-
-        # Return all audits older than the current one.
-        def ancestors
-          self.class.where(['auditable_id = ? and auditable_type = ? and version <= ?',
-            auditable_id, auditable_type, version])
-        end
 
         # Allows user to be set to either a string or an ActiveRecord object
         # @private
@@ -47,16 +39,6 @@ module Audited
         end
         alias_method :user_as_model, :user
         alias_method :user, :user_as_string
-
-      private
-        def set_version_number
-          max = self.class.maximum(:version,
-            :conditions => {
-              :auditable_id => auditable_id,
-              :auditable_type => auditable_type
-            }) || 0
-          self.version = max + 1
-        end
       end
     end
   end

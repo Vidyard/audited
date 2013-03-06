@@ -82,8 +82,6 @@ module Audited
         define_callbacks :audit
         set_callback :audit, :after, :after_audit, :if => lambda { self.respond_to?(:after_audit) }
 
-        attr_accessor :version
-
         extend Audited::Auditor::AuditedClassMethods
         include Audited::Auditor::AuditedInstanceMethods
 
@@ -109,34 +107,6 @@ module Audited
       #
       def without_auditing(&block)
         self.class.without_auditing(&block)
-      end
-
-      # Gets an array of the revisions available
-      #
-      #   user.revisions.each do |revision|
-      #     user.name
-      #     user.version
-      #   end
-      #
-      def revisions(from_version = 1)
-        audits = self.audits.from_version(from_version)
-        return [] if audits.empty?
-        revisions = []
-        audits.each do |audit|
-          revisions << audit.revision
-        end
-        revisions
-      end
-
-      # Get a specific revision specified by the version number, or +:previous+
-      def revision(version)
-        revision_with Audited.audit_class.reconstruct_attributes(audits_to(version))
-      end
-
-      # Find the oldest revision recorded prior to the date/time provided.
-      def revision_at(date_or_time)
-        audits = self.audits.up_until(date_or_time)
-        revision_with Audited.audit_class.reconstruct_attributes(audits) unless audits.empty?
       end
 
       # List of attributes that are audited.
@@ -179,18 +149,6 @@ module Audited
           changes[attr] = [old_value, self[attr]]
           changes
         end
-      end
-
-      def audits_to(version = nil)
-        if version == :previous
-          version = if self.version
-                      self.version - 1
-                    else
-                      previous = audits.descending.offset(1).first
-                      previous ? previous.version : 1
-                    end
-        end
-        audits.to_version(version)
       end
 
       def audit_create

@@ -11,7 +11,7 @@ module Audited
         belongs_to :user,       :polymorphic => true
         belongs_to :associated, :polymorphic => true
 
-        before_create :set_version_number, :set_audit_user
+        before_create :set_audit_user
 
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
@@ -37,38 +37,6 @@ module Audited
         yieldval
       end
 
-      # @private
-      def reconstruct_attributes(audits)
-        attributes = {}
-        result = audits.collect do |audit|
-          attributes.merge!(audit.new_attributes).merge!(:version => audit.version)
-          yield attributes if block_given?
-        end
-        block_given? ? result : attributes
-      end
-
-      # @private
-      def assign_revision_attributes(record, attributes)
-        attributes.each do |attr, val|
-          record = record.dup if record.frozen?
-
-          if record.respond_to?("#{attr}=")
-            record.attributes.has_key?(attr.to_s) ?
-              record[attr] = val :
-              record.send("#{attr}=", val)
-          end
-        end
-        record
-      end
-    end
-
-    # Return an instance of what the object looked like at this revision. If
-    # the object has been destroyed, this will be a new record.
-    def revision
-      clazz = auditable_type.constantize
-      (clazz.find_by_id(auditable_id) || clazz.new).tap do |m|
-        self.class.assign_revision_attributes(m, self.class.reconstruct_attributes(ancestors).merge({ :version => version }))
-      end
     end
 
     # Returns a hash of the changed attributes with the new values
@@ -89,14 +57,6 @@ module Audited
     end
 
     private
-    def set_version_number
-      max = self.class.where(
-        :auditable_id => auditable_id,
-        :auditable_type => auditable_type
-      ).order(:version.desc).first.try(:version) || 0
-      self.version = max + 1
-    end
-
     def set_audit_user
       self.user = Thread.current[:audited_user] if Thread.current[:audited_user]
       nil # prevent stopping callback chains

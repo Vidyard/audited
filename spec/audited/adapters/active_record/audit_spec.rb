@@ -43,52 +43,6 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
 
   end
 
-  describe "revision" do
-
-    it "should recreate attributes" do
-      user = Models::ActiveRecord::User.create :name => "1"
-      5.times { |i| user.update_attribute :name, (i + 2).to_s }
-
-      user.audits.each do |audit|
-        audit.revision.name.should == audit.version.to_s
-      end
-    end
-
-    it "should set protected attributes" do
-      u = Models::ActiveRecord::User.create(:name => 'Brandon')
-      u.update_attribute :logins, 1
-      u.update_attribute :logins, 2
-
-      u.audits[2].revision.logins.should be(2)
-      u.audits[1].revision.logins.should be(1)
-      u.audits[0].revision.logins.should be(0)
-    end
-
-    it "should bypass attribute assignment wrappers" do
-      u = Models::ActiveRecord::User.create(:name => '<Joe>')
-      u.audits.first.revision.name.should == '&lt;Joe&gt;'
-    end
-
-    it "should work for deleted records" do
-      user = Models::ActiveRecord::User.create :name => "1"
-      user.destroy
-      revision = user.audits.last.revision
-      revision.name.should == user.name
-      revision.should be_a_new_record
-    end
-
-  end
-
-  it "should set the version number on create" do
-    user = Models::ActiveRecord::User.create! :name => 'Set Version Number'
-    user.audits.first.version.should be(1)
-    user.update_attribute :name, "Set to 2"
-    user.audits(true).first.version.should be(1)
-    user.audits(true).last.version.should be(2)
-    user.destroy
-    Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id).last.version.should be(3)
-  end
-
   describe "transaction ids" do
     it "should not assign a transaction id if there is none" do
       user = Models::ActiveRecord::User.create! :name => 'Transaction Tester'
@@ -98,15 +52,6 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
       user.destroy
       Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id, :action => 'destroy').first.transaction_id.should be_nil
     end
-  end
-
-  describe "reconstruct_attributes" do
-
-    it "should work with the old way of storing just the new value" do
-      audits = Audited.audit_class.reconstruct_attributes([Audited.audit_class.new(:audited_changes => {'attribute' => 'value'})])
-      audits['attribute'].should == 'value'
-    end
-
   end
 
   describe "audited_classes" do
