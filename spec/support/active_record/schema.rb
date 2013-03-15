@@ -46,6 +46,7 @@ ActiveRecord::Schema.define do
     t.column :remote_address, :string
     t.column :created_at, :datetime
     t.column :transaction_id, :string
+    t.column :organization_id, :integer
   end
 
   add_index :audits, [:auditable_id, :auditable_type], :name => 'auditable_index'

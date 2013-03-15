@@ -16,6 +16,7 @@ class AuditsController < ActionController::Base
   attr_accessor :current_user
   attr_accessor :custom_user
   attr_accessor :transaction_id
+  attr_accessor :organization_id
 end
 
 describe AuditsController, :adapter => :active_record do
@@ -23,6 +24,7 @@ describe AuditsController, :adapter => :active_record do
 
   before(:each) do
     Audited.current_user_method = :current_user
+    Audited.organization_id_method = :organization_id
     Audited.transaction_id_method = :transaction_id
   end
 
@@ -45,6 +47,12 @@ describe AuditsController, :adapter => :active_record do
       }.to change( Audited.audit_class, :count )
 
       assigns(:company).audits.last.user.should == user
+    end
+
+    it "should audit organization" do
+      controller.send(:organization_id=, 4)
+      post :audit
+      assigns(:company).audits.last.organization_id.should eq(4)
     end
 
     it "should support custom users for sweepers" do

@@ -7,16 +7,16 @@ module Audited
 
     module ClassMethods
       def setup_audit
-        belongs_to :auditable,  :polymorphic => true
-        belongs_to :user,       :polymorphic => true
-        belongs_to :associated, :polymorphic => true
+        belongs_to :auditable,    :polymorphic => true
+        belongs_to :user,         :polymorphic => true
+        belongs_to :associated,   :polymorphic => true
 
         before_create :set_audit_user
 
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
 
-        attr_accessible :action, :audited_changes, :comment, :associated, :transaction_id
+        attr_accessible :action, :audited_changes, :comment, :associated, :transaction_id, :organization_id
       end
 
       # Returns the list of classes that are being audited

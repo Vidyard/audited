@@ -36,6 +36,10 @@ module Audited
           yield :add_transaction_id_to_audits
         end
 
+        unless columns.include? ( 'organization_id' )
+          yield :add_organization_id_to_audits
+        end
+
         unless columns.include?( 'comment' )
           yield :add_comment_to_audits
         end
