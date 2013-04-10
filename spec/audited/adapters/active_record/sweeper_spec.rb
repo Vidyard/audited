@@ -11,6 +11,13 @@ class AuditsController < ActionController::Base
     render :nothing => true
   end
 
+  def update_with_transaction_id
+    Audited.audit_class.with_transaction_id('customtransaction') do
+      @company = Models::ActiveRecord::Company.create
+    end
+    render :nothing => true
+  end
+
   private
 
   attr_accessor :current_user
@@ -75,6 +82,17 @@ describe AuditsController, :adapter => :active_record do
       assigns(:company).audits.last.remote_address.should == '1.2.3.4'
     end
 
+  end
+
+  describe "POST withtransaction id" do
+    it "should work with a custom transaction id" do
+      controller.send(:current_user=, user)
+      controller.send(:transaction_id=, '123abc')
+
+      post :update_with_transaction_id
+
+      assigns(:company).audits.last.transaction_id.should eq('customtransaction')
+    end
   end
 
   describe "POST update_user" do
