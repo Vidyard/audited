@@ -41,7 +41,7 @@ module Audited
       def with_transaction_id(transaction_id, &block)
         Thread.current[:audited_transaction_id] = transaction_id
         yieldval = yield
-        Thread.current[:audited_transaction_id] = transaction_id
+        Thread.current[:audited_transaction_id] = nil
         yieldval
       end
 
