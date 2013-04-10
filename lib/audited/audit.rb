@@ -12,6 +12,7 @@ module Audited
         belongs_to :associated,   :polymorphic => true
 
         before_create :set_audit_user
+        before_create :set_transaction_id
 
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
@@ -34,6 +35,13 @@ module Audited
 
         Thread.current[:audited_user] = nil
 
+        yieldval
+      end
+
+      def with_transaction_id(transaction_id, &block)
+        Thread.current[:audited_transaction_id] = transaction_id
+        yieldval = yield
+        Thread.current[:audited_transaction_id] = transaction_id
         yieldval
       end
 
@@ -60,6 +68,11 @@ module Audited
     def set_audit_user
       self.user = Thread.current[:audited_user] if Thread.current[:audited_user]
       nil # prevent stopping callback chains
+    end
+
+    def set_transaction_id
+      self.transaction_id = Thread.current[:audited_transaction_id] if Thread.current[:audited_transaction_id]
+      nil
     end
   end
 end

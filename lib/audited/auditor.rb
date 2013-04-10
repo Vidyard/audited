@@ -224,6 +224,10 @@ module Audited
       def audit_as( user, &block )
         Audited.audit_class.as_user( user, &block )
       end
+
+      def with_transaction_id(id, &block)
+        Audited.audit_class.with_transaction_id(id, &block)
+      end
     end
   end
 end
