@@ -5,7 +5,8 @@ Audited
 
 This is forked from https://github.com/collectiveidea/audited
 
+## The Fork
 This fork adds transaction_ids to help bundle audits where it makes sense.
-It also removes version numbers. 
-
-It's only testing on SQL, not Mongomapper.
+It also provides organization_ids to all the bundles to help find changes belonging to a organization but not a user.
+It also adds the optional "restore" action -- to distinguish between a model that is created or restored.
+And some other things. It's not like anyone is going to use this, since it was made for our specific use case...
