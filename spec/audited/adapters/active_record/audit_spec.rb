@@ -106,7 +106,34 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
         tr
       end.should == tr
     end
+  end
 
+  describe "with_attributes" do
+    let(:tr) { SecureRandom.hex(32) }
+    let(:org) { 123 }
+
+    it "should record transaction ids" do
+      attributes = {
+        :audited_transaction_id => tr,
+        :audited_organization_id => org
+      }
+      Audited.audit_class.with_attributes(attributes) do
+        company = Models::ActiveRecord::Company.create :name => 'The auditors'
+        company.name = 'The Auditors, Inc'
+        company.save
+
+        company.audits.each do |audit|
+          audit.transaction_id.should == tr
+          audit.organization_id.should == org
+        end
+      end
+    end
+
+    it "should return the value from the yield block" do
+      Audited.audit_class.with_transaction_id(tr) do
+        tr
+      end.should == tr
+    end
   end
 
   describe "as_user" do

@@ -13,6 +13,7 @@ module Audited
 
         before_create :set_audit_user
         before_create :set_transaction_id
+        before_create :set_attributes
 
         cattr_accessor :audited_class_names
         self.audited_class_names = Set.new
@@ -45,6 +46,18 @@ module Audited
         yieldval
       end
 
+      # Override a bunch of values
+      def with_attributes(hash, &block)
+        hash.each do |key, value|
+          Thread.current[key] = value
+        end
+        yieldval = yield
+        hash.each do |key, value|
+          Thread.current[key] = nil
+        end
+        yieldval
+      end
+
     end
 
     # Returns a hash of the changed attributes with the new values
@@ -68,6 +81,12 @@ module Audited
     def set_audit_user
       self.user = Thread.current[:audited_user] if Thread.current[:audited_user]
       nil # prevent stopping callback chains
+    end
+
+    def set_attributes
+      self.transaction_id = Thread.current[:audited_transaction_id] if Thread.current[:audited_transaction_id]
+      self.organization_id = Thread.current[:audited_organization_id] if Thread.current[:audited_organization_id]
+      nil
     end
 
     def set_transaction_id
