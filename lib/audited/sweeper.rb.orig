@@ -18,9 +18,13 @@ module Audited
     def before_create(audit)
       audit.organization_id ||= organization_id
       audit.user ||= current_user
+<<<<<<< HEAD
       audit.transaction_id ||= transaction_id
+      audit.remote_address = controller.try(:request).try(:ip)
+=======
       audit.remote_address = controller.try(:request).try(:remote_ip)
       audit.request_uuid = request_uuid if request_uuid
+>>>>>>> upstream/master
     end
 
     def organization_id

@@ -5,11 +5,15 @@ module Audited
   VERSION = '4.0.0'
 
   class << self
+<<<<<<< HEAD
     attr_accessor :ignored_attributes, :current_user_method, :transaction_id_method, :audit_class, :restoring, :organization_id_method
+=======
+    attr_accessor :ignored_attributes, :current_user_method, :audit_class
 
     def store
       Thread.current[:audited_store] ||= {}
     end
+>>>>>>> upstream/master
   end
 
   @ignored_attributes = %w(lock_version updated_at created_on updated_on)

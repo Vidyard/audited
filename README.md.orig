@@ -1,9 +1,14 @@
+<<<<<<< HEAD
 Audited
+=======
+Audited [![Build Status](https://secure.travis-ci.org/collectiveidea/audited.png)](http://travis-ci.org/collectiveidea/audited) [![Dependency Status](https://gemnasium.com/collectiveidea/audited.png)](https://gemnasium.com/collectiveidea/audited)[![Code Climate](https://codeclimate.com/github/collectiveidea/audited.png)](https://codeclimate.com/github/collectiveidea/audited)
+>>>>>>> upstream/master
 =======
 
 **Audited** (previously acts_as_audited) is an ORM extension that logs all changes to your models. Audited also allows you to record who made those changes, save comments and associate models related to the changes.
 
 Audited currently (4.x) works with Rails 4. For Rails 3, use gem version 3.0 or see the [3.0-stable branch](https://github.com/collectiveidea/audited/tree/3.0-stable).
+
 This is forked from https://github.com/collectiveidea/audited
 
 ## The Fork
@@ -12,9 +17,8 @@ It also provides organization_ids to all the bundles to help find changes belong
 It also adds the optional "restore" action -- to distinguish between a model that is created or restored.
 And some other things. It's not like anyone is going to use this, since it was made for our specific use case...
 
-
-Audited supports and is [tested against](http://travis-ci.org/collectiveidea/audited) the following Ruby versions:
-
+<<<<<<< HEAD
+=======
 * 1.9.3
 * 2.0.0
 * 2.1.2
@@ -290,3 +294,4 @@ In the spirit of [free software](http://www.fsf.org/licensing/essays/free-sw.htm
 * Fix bugs and submit [pull requests](http://github.com/collectiveidea/audited/pulls).
 * Write, clarify or fix documentation.
 * Refactor code.
+>>>>>>> upstream/master

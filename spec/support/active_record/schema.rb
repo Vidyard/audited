@@ -44,6 +44,7 @@ ActiveRecord::Schema.define do
     t.column :version, :integer, :default => 0
     t.column :comment, :string
     t.column :remote_address, :string
+    t.column :request_uuid, :string
     t.column :created_at, :datetime
     t.column :transaction_id, :string
     t.column :organization_id, :integer
@@ -52,6 +53,7 @@ ActiveRecord::Schema.define do
   add_index :audits, [:auditable_id, :auditable_type], :name => 'auditable_index'
   add_index :audits, [:associated_id, :associated_type], :name => 'associated_index'
   add_index :audits, [:user_id, :user_type], :name => 'user_index'
+  add_index :audits, :request_uuid
   add_index :audits, :created_at
   add_index :audits, :transaction_id, :name => 'transaction_id_index'
 end
