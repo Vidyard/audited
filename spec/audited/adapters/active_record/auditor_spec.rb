@@ -354,28 +354,28 @@ describe Audited::Auditor, :adapter => :active_record do
         user.update_attributes :name => 'Hello 4'
       }.to change( user.audits, :count ).by(0)
 
-      user.audits.last.action.should eq('restore')
+      expect(user.audits.last.action).to eq('restore')
     end
 
     it 'should not disrupt destroy actions if not restoring' do
       user.destroy
-      user.audits.last.action.should eq('destroy')
+      expect(user.audits.last.action).to eq('destroy')
     end
 
     it 'should override destroy actions if restoring' do
       Audited.restoring = true
       user.destroy
-      user.audits.last.action.should eq('destroy')
+      expect(user.audits.last.action).to eq('destroy')
     end
 
     it 'should be able to revert restorating state' do
       Audited.restoring = true
       user_two = Models::ActiveRecord::User.create :name => 'Testing'
-      user_two.audits.last.action.should eq('restore')
+      expect(user_two.audits.last.action).to eq('restore')
 
       Audited.restoring = false
       user_three = Models::ActiveRecord::User.create :name => 'Testing'
-      user_three.audits.last.action.should eq('create')
+      expect(user_three.audits.last.action).to eq('create')
     end
   end
 

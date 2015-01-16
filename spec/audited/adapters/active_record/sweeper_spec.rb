@@ -44,7 +44,7 @@ describe AuditsController, :adapter => :active_record do
       controller.send(:transaction_id=, '123abc')
 
       post :audit
-      assigns(:company).audits.last.transaction_id.should eq('123abc')
+      expect(assigns(:company).audits.last.transaction_id).to eq('123abc')
     end
 
     it "should audit user" do
@@ -59,7 +59,7 @@ describe AuditsController, :adapter => :active_record do
     it "should audit organization" do
       controller.send(:organization_id=, 4)
       post :audit
-      assigns(:company).audits.last.organization_id.should eq(4)
+      expect(assigns(:company).audits.last.organization_id).to eq(4)
     end
 
     it "should support custom users for sweepers" do
@@ -93,14 +93,14 @@ describe AuditsController, :adapter => :active_record do
 
   end
 
-  describe "POST withtransaction id" do
+  describe "POST with transaction id" do
     it "should work with a custom transaction id" do
       controller.send(:current_user=, user)
       controller.send(:transaction_id=, '123abc')
 
       post :update_with_transaction_id
 
-      assigns(:company).audits.last.transaction_id.should eq('customtransaction')
+      expect(assigns(:company).audits.last.transaction_id).to eq('customtransaction')
     end
   end
 

@@ -46,11 +46,11 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
   describe "transaction ids" do
     it "should not assign a transaction id if there is none" do
       user = Models::ActiveRecord::User.create! :name => 'Transaction Tester'
-      user.audits.first.transaction_id.should be_nil
+      expect(user.audits.first.transaction_id).to be_nil
       user.update_attribute :name, "New Name"
-      user.audits.last.transaction_id.should be_nil
+      expect(user.audits.last.transaction_id).to be_nil
       user.destroy
-      Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id, :action => 'destroy').first.transaction_id.should be_nil
+      expect(Audited.audit_class.where(:auditable_type => 'Models::ActiveRecord::User', :auditable_id => user.id, :action => 'destroy').first.transaction_id).to be_nil
   end
 
   it "should set the request uuid on create" do
@@ -103,15 +103,15 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
         company.save
 
         company.audits.each do |audit|
-          audit.transaction_id.should == tr
+          expect(audit.transaction_id).to eq(tr)
         end
       end
     end
 
     it "should return the value from the yield block" do
-      Audited.audit_class.with_transaction_id(tr) do
+      expect(Audited.audit_class.with_transaction_id(tr) do
         tr
-      end.should == tr
+      end).to eq(tr)
     end
   end
 
@@ -130,16 +130,16 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
         company.save
 
         company.audits.each do |audit|
-          audit.transaction_id.should == tr
-          audit.organization_id.should == org
+          expect(audit.transaction_id).to eq(tr)
+          expect(audit.organization_id).to eq(org)
         end
       end
     end
 
     it "should return the value from the yield block" do
-      Audited.audit_class.with_transaction_id(tr) do
+      expect(Audited.audit_class.with_transaction_id(tr) do
         tr
-      end.should == tr
+      end).to eq(tr)
     end
   end
 
