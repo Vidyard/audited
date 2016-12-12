@@ -1,11 +1,15 @@
 require 'rails/observers/active_model/active_model'
-
+require 'active_record'
 
 module Audited
-  VERSION = '4.0.0'
-
   class << self
-    attr_accessor :ignored_attributes, :current_user_method, :transaction_id_method, :audit_class, :restoring, :organization_id_method
+    attr_accessor :ignored_attributes, :current_user_method, :transaction_id_method, :restoring, :organization_id_method
+
+    # Deprecate audit_class accessors in preperation of their removal
+    def audit_class
+      Audited::Audit
+    end
+    deprecate audit_class: "Audited.audit_class is now always Audited::Audit. This method will be removed."
 
     def store
       Thread.current[:audited_store] ||= {}
@@ -19,3 +23,10 @@ module Audited
   @transaction_id_method = :transaction_id
   @restoring = false # When restoring, override all create actions to restore actions
 end
+
+require 'audited/auditor'
+require 'audited/audit'
+
+::ActiveRecord::Base.send :include, Audited::Auditor
+
+require 'audited/sweeper'

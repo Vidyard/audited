@@ -1,7 +1,7 @@
-require File.expand_path('../active_record_spec_helper', __FILE__)
+require "spec_helper"
 
-describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
-  let(:user) { Models::ActiveRecord::User.new :name => 'Testing' }
+describe Audited::Audit do
+  let(:user) { Models::ActiveRecord::User.new name: "Testing" }
 
   describe "user=" do
 
@@ -67,30 +67,26 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
     end
 
     it "should include audited classes" do
-      expect(Audited.audit_class.audited_classes).to include(Models::ActiveRecord::User)
+      expect(Audited::Audit.audited_classes).to include(Models::ActiveRecord::User)
     end
 
     it "should include subclasses" do
-      expect(Audited.audit_class.audited_classes).to include(Models::ActiveRecord::CustomUserSubclass)
+      expect(Audited::Audit.audited_classes).to include(Models::ActiveRecord::CustomUserSubclass)
     end
   end
 
   describe "new_attributes" do
-
     it "should return a hash of the new values" do
-      new_attributes = Audited.audit_class.new(:audited_changes => {:a => [1, 2], :b => [3, 4]}).new_attributes
-      expect(new_attributes).to eq({'a' => 2, 'b' => 4})
+      new_attributes = Audited::Audit.new(audited_changes: {a: [1, 2], b: [3, 4]}).new_attributes
+      expect(new_attributes).to eq({"a" => 2, "b" => 4})
     end
-
   end
 
   describe "old_attributes" do
-
     it "should return a hash of the old values" do
-      old_attributes = Audited.audit_class.new(:audited_changes => {:a => [1, 2], :b => [3, 4]}).old_attributes
-      expect(old_attributes).to eq({'a' => 1, 'b' => 3})
+      old_attributes = Audited::Audit.new(audited_changes: {a: [1, 2], b: [3, 4]}).old_attributes
+      expect(old_attributes).to eq({"a" => 1, "b" => 3})
     end
-
   end
 
   describe "with_transaction_id" do
@@ -144,11 +140,10 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
   end
 
   describe "as_user" do
-
     it "should record user objects" do
-      Audited.audit_class.as_user(user) do
-        company = Models::ActiveRecord::Company.create :name => 'The auditors'
-        company.name = 'The Auditors, Inc'
+      Audited::Audit.as_user(user) do
+        company = Models::ActiveRecord::Company.create name: "The auditors"
+        company.name = "The Auditors, Inc"
         company.save
 
         company.audits.each do |audit|
@@ -158,9 +153,9 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
     end
 
     it "should record usernames" do
-      Audited.audit_class.as_user(user.name) do
-        company = Models::ActiveRecord::Company.create :name => 'The auditors'
-        company.name = 'The Auditors, Inc'
+      Audited::Audit.as_user(user.name) do
+        company = Models::ActiveRecord::Company.create name: "The auditors"
+        company.name = "The Auditors, Inc"
         company.save
 
         company.audits.each do |audit|
@@ -171,29 +166,29 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
 
     it "should be thread safe" do
       begin
+        expect(user.save).to eq(true)
+
         t1 = Thread.new do
-          Audited.audit_class.as_user(user) do
+          Audited::Audit.as_user(user) do
             sleep 1
-            expect(Models::ActiveRecord::Company.create(:name => 'The Auditors, Inc').audits.first.user).to eq(user)
+            expect(Models::ActiveRecord::Company.create(name: "The Auditors, Inc").audits.first.user).to eq(user)
           end
         end
 
         t2 = Thread.new do
-          Audited.audit_class.as_user(user.name) do
-            expect(Models::ActiveRecord::Company.create(:name => 'The Competing Auditors, LLC').audits.first.username).to eq(user.name)
+          Audited::Audit.as_user(user.name) do
+            expect(Models::ActiveRecord::Company.create(name: "The Competing Auditors, LLC").audits.first.username).to eq(user.name)
             sleep 0.5
           end
         end
 
         t1.join
         t2.join
-      rescue ActiveRecord::StatementInvalid
-        STDERR.puts "Thread safety tests cannot be run with SQLite"
       end
-    end
+    end if ActiveRecord::Base.connection.adapter_name != 'SQLite'
 
     it "should return the value from the yield block" do
-      result = Audited.audit_class.as_user('foo') do
+      result = Audited::Audit.as_user('foo') do
         42
       end
       expect(result).to eq(42)
@@ -201,10 +196,10 @@ describe Audited::Adapters::ActiveRecord::Audit, :adapter => :active_record do
 
     it "should reset audited_user when the yield block raises an exception" do
       expect {
-        Audited.audit_class.as_user('foo') do
-          raise StandardError
+        Audited::Audit.as_user('foo') do
+          raise StandardError.new('expected')
         end
-      }.to raise_exception
+      }.to raise_exception('expected')
       expect(Thread.current[:audited_user]).to be_nil
     end
 

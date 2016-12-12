@@ -15,5 +15,6 @@ Gemfile.lock
 gemfiles/*.lock
 pkg
 tmp/*
+audited_test.sqlite3.db
 
 *.orig

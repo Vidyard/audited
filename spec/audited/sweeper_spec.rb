@@ -1,14 +1,16 @@
-require File.expand_path('../active_record_spec_helper', __FILE__)
+require "spec_helper"
 
 class AuditsController < ActionController::Base
-  def audit
+  attr_reader :company
+
+  def create
     @company = Models::ActiveRecord::Company.create
-    render :nothing => true
+    head :ok
   end
 
-  def update_user
-    current_user.update_attributes( :password => 'foo')
-    render :nothing => true
+  def update
+    current_user.update_attributes(password: 'foo')
+    head :ok
   end
 
   def update_with_transaction_id
@@ -26,7 +28,7 @@ class AuditsController < ActionController::Base
   attr_accessor :organization_id
 end
 
-describe AuditsController, :adapter => :active_record do
+describe AuditsController do
   include RSpec::Rails::ControllerExampleGroup
   render_views
 
@@ -36,7 +38,7 @@ describe AuditsController, :adapter => :active_record do
     Audited.transaction_id_method = :transaction_id
   end
 
-  let( :user ) { create_user }
+  let(:user) { create_user }
 
   describe "POST audit" do
 
@@ -50,10 +52,10 @@ describe AuditsController, :adapter => :active_record do
     it "should audit user" do
       controller.send(:current_user=, user)
       expect {
-        post :audit
-      }.to change( Audited.audit_class, :count )
+        post :create
+      }.to change( Audited::Audit, :count )
 
-      expect(assigns(:company).audits.last.user).to eq(user)
+      expect(controller.company.audits.last.user).to eq(user)
     end
 
     it "should audit organization" do
@@ -67,28 +69,28 @@ describe AuditsController, :adapter => :active_record do
       Audited.current_user_method = :custom_user
 
       expect {
-        post :audit
-      }.to change( Audited.audit_class, :count )
+        post :create
+      }.to change( Audited::Audit, :count )
 
-      expect(assigns(:company).audits.last.user).to eq(user)
+      expect(controller.company.audits.last.user).to eq(user)
     end
 
     it "should record the remote address responsible for the change" do
       request.env['REMOTE_ADDR'] = "1.2.3.4"
       controller.send(:current_user=, user)
 
-      post :audit
+      post :create
 
-      expect(assigns(:company).audits.last.remote_address).to eq('1.2.3.4')
+      expect(controller.company.audits.last.remote_address).to eq('1.2.3.4')
     end
 
     it "should record a UUID for the web request responsible for the change" do
       allow_any_instance_of(ActionDispatch::Request).to receive(:uuid).and_return("abc123")
       controller.send(:current_user=, user)
 
-      post :audit
+      post :create
 
-      expect(assigns(:company).audits.last.request_uuid).to eq("abc123")
+      expect(controller.company.audits.last.request_uuid).to eq("abc123")
     end
 
   end
@@ -104,21 +106,20 @@ describe AuditsController, :adapter => :active_record do
     end
   end
 
-  describe "POST update_user" do
+  describe "PUT update" do
 
     it "should not save blank audits" do
       controller.send(:current_user=, user)
 
       expect {
-        post :update_user
-      }.to_not change( Audited.audit_class, :count )
+        put :update, id: 123
+      }.to_not change( Audited::Audit, :count )
     end
-
   end
 end
 
 
-describe Audited::Sweeper, :adapter => :active_record do
+describe Audited::Sweeper do
 
   it "should be thread-safe" do
     t1 = Thread.new do

@@ -3,15 +3,12 @@ require "rails/observers/action_controller/caching"
 
 module Audited
   class Sweeper < ActionController::Caching::Sweeper
-    observe Audited.audit_class
+    observe Audited::Audit
 
-    attr_accessor :controller
-    def before(controller)
+    def around(controller)
       self.controller = controller
-      true
-    end
-
-    def after(controller)
+      yield
+    ensure
       self.controller = nil
     end
 
@@ -46,7 +43,7 @@ module Audited
 
     def define_callback(klass)
       observer = self
-      callback_meth = :"_notify_audited_sweeper"
+      callback_meth = :_notify_audited_sweeper
       klass.send(:define_method, callback_meth) do
         observer.update(:before_create, self)
       end
@@ -63,17 +60,11 @@ module Audited
   end
 end
 
-if defined?(ActionController) and defined?(ActionController::Base)
-  # Create dynamic subclass of Audited::Sweeper otherwise rspec will
-  # fail with both ActiveRecord and MongoMapper tests as there will be
-  # around_filter collision
-  sweeper_class = Class.new(Audited::Sweeper) do
-    def self.name
-      "#{Audited.audit_class}::Sweeper"
-    end
+ActiveSupport.on_load(:action_controller) do
+  if defined?(ActionController::Base)
+    ActionController::Base.around_action Audited::Sweeper.instance
   end
-
-  ActionController::Base.class_eval do
-    around_filter sweeper_class.instance
+  if defined?(ActionController::API)
+    ActionController::API.around_action Audited::Sweeper.instance
   end
 end
