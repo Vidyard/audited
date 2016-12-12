@@ -45,7 +45,7 @@ describe AuditsController do
     it "should audit transation id" do
       controller.send(:transaction_id=, '123abc')
 
-      post :audit
+      post :create
       expect(assigns(:company).audits.last.transaction_id).to eq('123abc')
     end
 
@@ -60,7 +60,7 @@ describe AuditsController do
 
     it "should audit organization" do
       controller.send(:organization_id=, 4)
-      post :audit
+      post :create
       expect(assigns(:company).audits.last.organization_id).to eq(4)
     end
 

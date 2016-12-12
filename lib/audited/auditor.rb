@@ -161,7 +161,7 @@ module Audited
 
       def audit_create
         (Audited.restoring ? action = 'restore' : action = 'create')
-        write_audit(action: 'create', audited_changes: audited_attributes,
+        write_audit(action: action, audited_changes: audited_attributes,
                     comment: audit_comment)
       end
 
