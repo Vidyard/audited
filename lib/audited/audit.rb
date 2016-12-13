@@ -19,36 +19,16 @@ module Audited
     belongs_to :user,       polymorphic: true
     belongs_to :associated, polymorphic: true
 
-    before_create :set_version_number, :set_audit_user, :set_request_uuid, :set_transaction_id, :set_attributes
+    before_create :set_audit_user, :set_request_uuid, :set_transaction_id, :set_attributes
 
     cattr_accessor :audited_class_names
     self.audited_class_names = Set.new
 
     serialize :audited_changes
 
-    scope :ascending,     ->{ reorder(version: :asc) }
-    scope :descending,    ->{ reorder(version: :desc)}
     scope :creates,       ->{ where(action: 'create')}
     scope :updates,       ->{ where(action: 'update')}
     scope :destroys,      ->{ where(action: 'destroy')}
-
-    scope :up_until,      ->(date_or_time){ where("created_at <= ?", date_or_time) }
-    scope :from_version,  ->(version){ where('version >= ?', version) }
-    scope :to_version,    ->(version){ where('version <= ?', version) }
-    scope :auditable_finder, ->(auditable_id, auditable_type){ where(auditable_id: auditable_id, auditable_type: auditable_type)}
-    # Return all audits older than the current one.
-    def ancestors
-      self.class.ascending.auditable_finder(auditable_id, auditable_type).to_version(version)
-    end
-
-    # Return an instance of what the object looked like at this revision. If
-    # the object has been destroyed, this will be a new record.
-    def revision
-      clazz = auditable_type.constantize
-      (clazz.find_by_id(auditable_id) || clazz.new).tap do |m|
-        self.class.assign_revision_attributes(m, self.class.reconstruct_attributes(ancestors).merge(version: version))
-      end
-    end
 
     # Returns a hash of the changed attributes with the new values
     def new_attributes
@@ -120,41 +100,12 @@ module Audited
       yieldval
     end
 
-    # @private
-    def self.reconstruct_attributes(audits)
-      attributes = {}
-      result = audits.collect do |audit|
-        attributes.merge!(audit.new_attributes)[:version] = audit.version
-        yield attributes if block_given?
-      end
-      block_given? ? result : attributes
-    end
-
-    # @private
-    def self.assign_revision_attributes(record, attributes)
-      attributes.each do |attr, val|
-        record = record.dup if record.frozen?
-
-        if record.respond_to?("#{attr}=")
-          record.attributes.key?(attr.to_s) ?
-            record[attr] = val :
-            record.send("#{attr}=", val)
-        end
-      end
-      record
-    end
-
     # use created_at as timestamp cache key
     def self.collection_cache_key(collection = all, timestamp_column = :created_at)
       super(collection, :created_at)
     end
 
     private
-
-    def set_version_number
-      max = self.class.auditable_finder(auditable_id, auditable_type).descending.first.try(:version) || 0
-      self.version = max + 1
-    end
 
     def set_audit_user
       self.user = Thread.current[:audited_user] if Thread.current[:audited_user]
@@ -164,7 +115,7 @@ module Audited
     def set_request_uuid
       self.request_uuid ||= SecureRandom.uuid
     end
-    
+
     def set_attributes
       self.transaction_id = Thread.current[:audited_transaction_id] if Thread.current[:audited_transaction_id]
       self.organization_id = Thread.current[:audited_organization_id] if Thread.current[:audited_organization_id]
